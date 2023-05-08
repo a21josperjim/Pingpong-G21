@@ -1,0 +1,199 @@
+import turtle
+import threading
+import time
+
+# AREA DE JOC
+wn = turtle.Screen()
+wn.title("Ping Pong g21")
+wn.bgcolor("black")
+wn.setup(width=800, height=600)
+wn.tracer(0)
+
+# PUNTUACIO
+score_a = 0
+score_b = 0
+
+# PALA 1
+pala_1 = turtle.Turtle()
+pala_1.speed(0)
+pala_1.shape("square")
+pala_1.color("white")
+pala_1.shapesize(stretch_wid=5, stretch_len=1)
+pala_1.penup()
+pala_1.goto(-350, 0)
+
+# PALA 2
+pala_2 = turtle.Turtle()
+pala_2.speed(0)
+pala_2.shape("square")
+pala_2.color("white")
+pala_2.shapesize(stretch_wid=5, stretch_len=1)
+pala_2.penup()
+pala_2.goto(350, 0)
+
+# LINEA DIVISORIA
+mid_line = turtle.Turtle()
+mid_line.speed(0)
+mid_line.shape("square")
+mid_line.color("gray")
+mid_line.shapesize(stretch_wid=30, stretch_len=0.07)
+mid_line.penup()
+mid_line.goto(0, 0)
+
+# PILOTA
+pelota = turtle.Turtle()
+pelota.speed(0)
+pelota.shape("circle")
+pelota.color("white")
+pelota.penup()
+pelota.goto(0, 0)
+pelota.dx = 0.2
+pelota.dy = 0.2
+
+# MARCADOR
+marcador = turtle.Turtle()
+marcador.speed(0)
+marcador.color("white")
+marcador.penup()
+marcador.hideturtle()
+marcador.goto(0, 260)
+marcador.write("Jugador A: 0  Jugador B: 0", align="center", font=("Courier", 24, "normal"))
+
+# COMENÇAMENT
+game_started = False
+game_start = turtle.Turtle()
+game_start.speed(0)
+game_start.color("white")
+game_start.penup()
+game_start.hideturtle()
+game_start.goto(0, 120)
+game_start.write("PULSA ENTER PER COMENÇAR", align="center", font=("Courier", 24, "normal"))
+
+# MOVIMENT DE LES PALES
+def pala_1_up():
+    y = pala_1.ycor()
+    if y < 240:
+        y += 20
+        pala_1.sety(y)
+
+def pala_1_down():
+    y = pala_1.ycor()
+    if y > -220:
+        y -= 20
+        pala_1.sety(y)
+
+def pala_2_up():
+    y = pala_2.ycor()
+    if y < 240:
+        y += 20
+        pala_2.sety(y)
+
+def pala_2_down():
+    y = pala_2.ycor()
+    if y > -220:
+        y -= 20
+        pala_2.sety(y)
+
+# COMENÇAMENT DEL JOC
+def start_game():
+    global game_started
+    game_started = True
+    game_start.clear()
+
+# RESETEJAR LA PANTALLA
+def reset_screen():
+    pelota.goto(0, 0)
+    pelota.dx *= -1
+    game_start.write("PULSA ENTER PER COMENÇAR", align="center", font=("Courier", 24, "normal"))
+    pala_1.goto(-350, 0)
+    pala_2.goto(350, 0)
+
+# ACTUALITZACIÓ MARCADOR
+def update_score():
+    marcador.clear()
+    marcador.write("Jugador A: {}  Jugador B: {}".format(score_a, score_b), align="center", font=("Courier", 24, "normal"))
+
+# TECLAT
+wn.listen()
+wn.onkeypress(pala_1_up, "w")
+wn.onkeypress(pala_1_down, "s")
+wn.onkeypress(pala_2_up, "Up")
+wn.onkeypress(pala_2_down, "Down")
+wn.onkeypress(start_game, "Return")
+wn.onkeypress(reset_screen, "space")
+
+# BUCLE PER JUGAR
+while True:
+    wn.update()
+
+# MOURE LA PILOTA
+    if game_started:
+        pelota.setx(pelota.xcor() + pelota.dx)
+        pelota.sety(pelota.ycor() + pelota.dy)
+
+# COL·LISION AMB LA PARET SUPERIOR O INFERIOR
+    if pelota.ycor() > 290 or pelota.ycor() < -290:
+            pelota.dy *= -1
+
+# PILOTA COLISIONA AMB LES PALES
+    if (pelota.xcor() > 340 and pelota.xcor() < 350) and (pelota.ycor() < pala_2.ycor() + 50 and pelota.ycor() > pala_2.ycor() - 50):
+            pelota.setx(340)
+            pelota.dx *= -1
+            score_b += 1
+            update_score()
+
+    if (pelota.xcor() < -340 and pelota.xcor() > -350) and (pelota.ycor() < pala_1.ycor() + 50 and pelota.ycor() > pala_1.ycor() - 50):
+            pelota.setx(-340)
+            pelota.dx *= -1
+            score_a += 1
+            update_score()
+
+# PILOTA FORA DE LÍMITS
+    if pelota.xcor() > 390:
+            pelota.goto(0, 0)
+            pelota.dx *= -1
+            score_a += 1
+            update_score()
+
+    if pelota.xcor() < -390:
+            pelota.goto(0, 0)
+            pelota.dx *= -1
+            score_b += 1
+            update_score()
+
+# PALA NO POT ATRAVESSAR LA PARED
+    if pala_1.ycor() > 240:
+            pala_1.sety(240)
+
+    if pala_1.ycor() < -220:
+            pala_1.sety(-220)
+
+    if pala_2.ycor() > 240:
+            pala_2.sety(240)
+
+    if pala_2.ycor() < -220:
+            pala_2.sety(-220)
+
+# DERROTA
+    if score_a == 10:
+        game_started = False
+        game_start.write("JUGADOR A GUANYA!\n\nPULSA ESPAI PER TORNAR A JUGAR", align="center", font=("Courier", 24, "normal"))
+
+    elif score_b == 10:
+        game_started = False
+        game_start.write("JUGADOR B GUANYA!\n\nPULSA ESPAI PER TORNAR A JUGAR", align="center", font=("Courier", 24, "normal"))
+
+# MOVIMENT DE MOVEMENT
+wn.listen()
+wn.onkeypress(pala_1_up, "w")
+wn.onkeypress(pala_1_down, "s")
+wn.onkeypress(pala_2_up, "Up")
+wn.onkeypress(pala_2_down, "Down")
+
+# COMENÇA EL JOC
+if not game_started:
+    wn.onkeypress(game_start_clear, "space")
+    wn.onkeypress(game_start_clear, "Return")
+
+# DELAY
+time.sleep(0.01)  # 100 FPS
